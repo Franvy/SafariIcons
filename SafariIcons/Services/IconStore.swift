@@ -356,31 +356,29 @@ struct IconStore: Sendable {
     }
 
     func writeIcon(from source: URL, for site: Site) throws {
-        try lockImages(false)
-        defer { try? lockImages(true) }
-
-        let destination = paths.iconURL(forMD5: site.md5)
-        let normalizedData = try IconImageProcessor.normalizedPNGData(from: source)
-        let fm = FileManager.default
-        if fm.fileExists(atPath: destination.path) {
-            try fm.removeItem(at: destination)
+        try withUnlockedImages {
+            let destination = paths.iconURL(forMD5: site.md5)
+            let normalizedData = try IconImageProcessor.normalizedPNGData(from: source)
+            let fm = FileManager.default
+            if fm.fileExists(atPath: destination.path) {
+                try fm.removeItem(at: destination)
+            }
+            try normalizedData.write(to: destination, options: .atomic)
+            try? setIconCached(host: site.host)
         }
-        try normalizedData.write(to: destination, options: .atomic)
-        try? setIconCached(host: site.host)
     }
 
     func writeIcon(data: Data, for site: Site) throws {
-        try lockImages(false)
-        defer { try? lockImages(true) }
-
-        let destination = paths.iconURL(forMD5: site.md5)
-        let normalizedData = try IconImageProcessor.normalizedPNGData(from: data)
-        let fm = FileManager.default
-        if fm.fileExists(atPath: destination.path) {
-            try fm.removeItem(at: destination)
+        try withUnlockedImages {
+            let destination = paths.iconURL(forMD5: site.md5)
+            let normalizedData = try IconImageProcessor.normalizedPNGData(from: data)
+            let fm = FileManager.default
+            if fm.fileExists(atPath: destination.path) {
+                try fm.removeItem(at: destination)
+            }
+            try normalizedData.write(to: destination, options: .atomic)
+            try? setIconCached(host: site.host)
         }
-        try normalizedData.write(to: destination, options: .atomic)
-        try? setIconCached(host: site.host)
     }
 
     func repairStoredIconsIfNeeded(at urls: [URL]) throws -> Bool {
@@ -389,16 +387,24 @@ struct IconStore: Sendable {
             return false
         }
 
-        try lockImages(false)
-        defer { try? lockImages(true) }
+        return try withUnlockedImages {
+            var repairedAny = false
+            for url in existing {
+                if try IconImageProcessor.sanitizeStoredIcon(at: url) {
+                    repairedAny = true
+                }
+            }
+            return repairedAny
+        }
+    }
 
-        var repairedAny = false
-        for url in existing {
-            if try IconImageProcessor.sanitizeStoredIcon(at: url) {
-                repairedAny = true
+    func removeStoredIcon(for site: Site) throws {
+        try withUnlockedImages {
+            let iconPath = paths.iconURL(forMD5: site.md5)
+            if FileManager.default.fileExists(atPath: iconPath.path) {
+                try FileManager.default.removeItem(at: iconPath)
             }
         }
-        return repairedAny
     }
 
     func lockImages(_ locked: Bool) throws {
@@ -408,11 +414,29 @@ struct IconStore: Sendable {
         )
     }
 
+    func imagesAreLocked() throws -> Bool {
+        let attributes = try FileManager.default.attributesOfItem(atPath: paths.images.path)
+        return attributes[.immutable] as? Bool ?? false
+    }
+
     func resetDefaults() throws {
         try? lockImages(false)
         if FileManager.default.fileExists(atPath: paths.touchIconCache.path) {
             try FileManager.default.removeItem(at: paths.touchIconCache)
         }
+    }
+
+    private func withUnlockedImages<T>(_ operation: () throws -> T) throws -> T {
+        let wasLocked = try imagesAreLocked()
+        if wasLocked {
+            try lockImages(false)
+        }
+        defer {
+            if wasLocked {
+                try? lockImages(true)
+            }
+        }
+        return try operation()
     }
 }
 

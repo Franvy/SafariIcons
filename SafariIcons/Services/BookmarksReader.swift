@@ -9,6 +9,7 @@ struct FavoriteBookmark: Identifiable, Hashable, Sendable {
     let title: String
     let md5: String
     let iconURL: URL
+    let bookmarksBarIndex: Int
 }
 
 struct BookmarksResult: Sendable {
@@ -29,6 +30,154 @@ enum BookmarksReaderError: LocalizedError {
         case .malformed:
             return "Bookmarks.plist parse failed or structure was unexpected."
         }
+    }
+}
+
+enum BookmarksWriterError: LocalizedError {
+    case bookmarkNotFound
+    case malformed
+    case writeFailed(underlying: Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .bookmarkNotFound:
+            return "Could not find this favorite inside Bookmarks.plist."
+        case .malformed:
+            return "Bookmarks.plist had an unexpected structure."
+        case .writeFailed(let underlying):
+            return "Unable to save to Bookmarks.plist: \(underlying.localizedDescription)"
+        }
+    }
+}
+
+enum BookmarksWriter {
+    static func renameFavorite(_ bookmark: FavoriteBookmark, newTitle: String, paths: SafariPaths = .default) throws {
+        let url = paths.safari.appendingPathComponent("Bookmarks.plist")
+        let data = try Data(contentsOf: url)
+
+        var format: PropertyListSerialization.PropertyListFormat = .binary
+        let parsed = try PropertyListSerialization.propertyList(
+            from: data,
+            options: [.mutableContainers],
+            format: &format
+        )
+
+        guard let root = parsed as? NSMutableDictionary else {
+            throw BookmarksWriterError.malformed
+        }
+
+        guard renameInBookmarksBar(root: root, bookmark: bookmark, newTitle: newTitle) else {
+            throw BookmarksWriterError.bookmarkNotFound
+        }
+
+        let out: Data
+        do {
+            out = try PropertyListSerialization.data(fromPropertyList: root, format: format, options: 0)
+        } catch {
+            throw BookmarksWriterError.writeFailed(underlying: error)
+        }
+
+        do {
+            try out.write(to: url, options: .atomic)
+        } catch {
+            throw BookmarksWriterError.writeFailed(underlying: error)
+        }
+    }
+
+    private static func renameInBookmarksBar(root: NSMutableDictionary, bookmark: FavoriteBookmark, newTitle: String) -> Bool {
+        guard let bar = findBookmarksBar(in: root) else { return false }
+        guard let children = bar["Children"] as? NSArray else { return false }
+        guard let child = findBookmarkNode(in: children, matching: bookmark) else { return false }
+
+        if let dict = child["URIDictionary"] as? NSMutableDictionary {
+            dict["title"] = newTitle
+        } else {
+            child["URIDictionary"] = NSMutableDictionary(dictionary: ["title": newTitle])
+        }
+        if child["Title"] != nil {
+            child["Title"] = newTitle
+        }
+        return true
+    }
+
+    private static func findBookmarksBar(in node: NSDictionary) -> NSMutableDictionary? {
+        if (node["Title"] as? String) == "BookmarksBar", let mutable = node as? NSMutableDictionary {
+            return mutable
+        }
+        if let children = node["Children"] as? NSArray {
+            for case let child as NSDictionary in children {
+                if let found = findBookmarksBar(in: child) {
+                    return found
+                }
+            }
+        }
+        return nil
+    }
+
+    private static func findBookmarkNode(in children: NSArray, matching bookmark: FavoriteBookmark) -> NSMutableDictionary? {
+        if let bookmarkUUID = bookmarkUUID(fromBookmarkID: bookmark.id) {
+            for case let child as NSMutableDictionary in children {
+                guard isLeaf(child) else { continue }
+                if (child["WebBookmarkUUID"] as? String) == bookmarkUUID {
+                    return child
+                }
+            }
+        }
+
+        if let child = childAtBookmarksBarIndex(bookmark.bookmarksBarIndex, in: children),
+           isLeaf(child),
+           (child["URLString"] as? String) == bookmark.urlString {
+            return child
+        }
+
+        let matchingURLNodes = children.compactMap { rawChild -> NSMutableDictionary? in
+            guard let child = rawChild as? NSMutableDictionary,
+                  isLeaf(child),
+                  (child["URLString"] as? String) == bookmark.urlString
+            else {
+                return nil
+            }
+            return child
+        }
+
+        if matchingURLNodes.count == 1 {
+            return matchingURLNodes[0]
+        }
+
+        let matchingTitleNodes = matchingURLNodes.filter {
+            extractTitle(from: $0 as NSDictionary) == bookmark.title
+        }
+        if matchingTitleNodes.count == 1 {
+            return matchingTitleNodes[0]
+        }
+
+        return nil
+    }
+
+    private static func bookmarkUUID(fromBookmarkID bookmarkID: String) -> String? {
+        guard bookmarkID.hasPrefix("uuid:") else { return nil }
+        return String(bookmarkID.dropFirst("uuid:".count))
+    }
+
+    private static func childAtBookmarksBarIndex(_ index: Int, in children: NSArray) -> NSMutableDictionary? {
+        guard index >= 0, index < children.count else { return nil }
+        return children[index] as? NSMutableDictionary
+    }
+
+    private static func isLeaf(_ node: NSDictionary) -> Bool {
+        (node["WebBookmarkType"] as? String) == "WebBookmarkTypeLeaf"
+    }
+
+    private static func extractTitle(from node: NSDictionary) -> String? {
+        if let uri = node["URIDictionary"] as? NSDictionary,
+           let title = uri["title"] as? String,
+           !title.isEmpty {
+            return title
+        }
+        if let title = node["Title"] as? String, !title.isEmpty {
+            return title
+        }
+        return nil
     }
 }
 
@@ -65,8 +214,9 @@ struct BookmarksReader {
         let children = (bar["Children"] as? [[String: Any]]) ?? []
         var bookmarks: [FavoriteBookmark] = []
         var subfolderCount = 0
+        var fallbackIDOccurrences: [String: Int] = [:]
 
-        for child in children {
+        for (index, child) in children.enumerated() {
             let type = child["WebBookmarkType"] as? String
             if type == "WebBookmarkTypeList" {
                 subfolderCount += 1
@@ -81,14 +231,22 @@ struct BookmarksReader {
             let host = rawHost
             let title = extractTitle(from: child) ?? fallbackTitle(for: host)
             let md5 = md5Hex(host)
-            let stableID = "\(urlString)#\(bookmarks.count)"
+            let fallbackIDBase = fallbackBookmarkIDBase(urlString: urlString, title: title)
+            let fallbackOccurrence = fallbackIDOccurrences[fallbackIDBase, default: 0]
+            fallbackIDOccurrences[fallbackIDBase] = fallbackOccurrence + 1
+            let stableID = bookmarkID(
+                from: child,
+                fallbackIDBase: fallbackIDBase,
+                fallbackOccurrence: fallbackOccurrence
+            )
             bookmarks.append(FavoriteBookmark(
                 id: stableID,
                 urlString: urlString,
                 host: host,
                 title: title,
                 md5: md5,
-                iconURL: paths.iconURL(forMD5: md5)
+                iconURL: paths.iconURL(forMD5: md5),
+                bookmarksBarIndex: index
             ))
         }
 
@@ -126,6 +284,17 @@ struct BookmarksReader {
             return title
         }
         return nil
+    }
+
+    private static func bookmarkID(from node: [String: Any], fallbackIDBase: String, fallbackOccurrence: Int) -> String {
+        if let uuid = node["WebBookmarkUUID"] as? String, !uuid.isEmpty {
+            return "uuid:\(uuid)"
+        }
+        return "fallback:\(fallbackIDBase)#\(fallbackOccurrence)"
+    }
+
+    private static func fallbackBookmarkIDBase(urlString: String, title: String) -> String {
+        md5Hex("\(urlString)\u{1F}\(title)")
     }
 
     private static func fallbackTitle(for host: String) -> String {

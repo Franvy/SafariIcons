@@ -16,6 +16,9 @@ struct SiteDetailView: View {
     @State private var isTargeted = false
     @State private var pasteFlash = false
     @State private var showingFilePicker = false
+    @State private var isRenaming = false
+    @State private var renameDraft = ""
+    @FocusState private var renameFieldFocused: Bool
 
     private var site: Site { store.site(for: bookmark) }
     private var iconBodyInset: CGFloat {
@@ -75,12 +78,10 @@ struct SiteDetailView: View {
     private var headerSection: some View {
         HStack(alignment: .center, spacing: 18) {
             iconPreview
-                .accessibilityLabel("\(site.domainName) current icon")
+                .accessibilityLabel("\(displayName) current icon")
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(site.domainName)
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                nameField
                 Text(site.host)
                     .font(.callout)
                     .foregroundStyle(.secondary)
@@ -90,6 +91,58 @@ struct SiteDetailView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private var displayName: String {
+        bookmark.title
+    }
+
+    @ViewBuilder
+    private var nameField: some View {
+        if isRenaming {
+            TextField("Name", text: $renameDraft)
+                .textFieldStyle(.roundedBorder)
+                .font(.title2)
+                .fontWeight(.semibold)
+                .focused($renameFieldFocused)
+                .onSubmit { commitRename() }
+                .onExitCommand { cancelRename() }
+                .onChange(of: renameFieldFocused) { _, focused in
+                    if !focused && isRenaming {
+                        commitRename()
+                    }
+                }
+                .background(ClickOutsideResigner(isActive: isRenaming))
+        } else {
+            Text(displayName)
+                .font(.title2)
+                .fontWeight(.semibold)
+                .contentShape(.rect)
+                .onTapGesture(count: 2) { beginRename() }
+                .help("Double-click to rename")
+                .accessibilityAction(named: Text("Rename"), beginRename)
+        }
+    }
+
+    private func beginRename() {
+        renameDraft = displayName
+        isRenaming = true
+        DispatchQueue.main.async {
+            renameFieldFocused = true
+        }
+    }
+
+    private func commitRename() {
+        guard isRenaming else { return }
+        let draft = renameDraft
+        isRenaming = false
+        renameFieldFocused = false
+        store.renameFavorite(bookmark, to: draft)
+    }
+
+    private func cancelRename() {
+        isRenaming = false
+        renameFieldFocused = false
     }
 
     private var styleSection: some View {

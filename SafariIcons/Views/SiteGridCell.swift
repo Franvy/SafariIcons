@@ -14,6 +14,9 @@ struct SiteGridCell: View {
     @State private var isLoadingImage = false
     @State private var hovering = false
     @State private var isTargeted = false
+    @State private var isRenaming = false
+    @State private var renameDraft = ""
+    @FocusState private var renameFieldFocused: Bool
 
     private var site: Site { store.site(for: bookmark) }
     private var iconBodyInset: CGFloat {
@@ -24,7 +27,7 @@ struct SiteGridCell: View {
     }
 
     var body: some View {
-        cellButton
+        cellContainer
             .background(hoverBackground)
             .onHover { hovering = $0 }
             .animation(.easeOut(duration: 0.15), value: hovering)
@@ -41,11 +44,21 @@ struct SiteGridCell: View {
             .modifier(CellAccessibility(bookmark: bookmark,
                                         openInSafari: openInSafari,
                                         revealInFinder: revealInFinder,
-                                        resetIcon: { store.resetIcon(for: bookmark) }))
+                                        resetIcon: { store.resetIcon(for: bookmark) },
+                                        beginRename: beginRename))
             .contextMenu { contextMenuContent }
             .task(id: loadKey) {
                 await loadImage()
             }
+    }
+
+    @ViewBuilder
+    private var cellContainer: some View {
+        if isRenaming {
+            renamingCell
+        } else {
+            cellButton
+        }
     }
 
     private var cellButton: some View {
@@ -74,6 +87,31 @@ struct SiteGridCell: View {
         .padding(.vertical, 10)
         .padding(.horizontal, Self.horizontalInset)
         .contentShape(.rect(cornerRadius: 12))
+    }
+
+    private var renamingCell: some View {
+        VStack(spacing: 8) {
+            iconView
+
+            TextField("Name", text: $renameDraft)
+                .textFieldStyle(.roundedBorder)
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .focused($renameFieldFocused)
+                .onSubmit { commitRename() }
+                .onExitCommand { cancelRename() }
+                .onChange(of: renameFieldFocused) { _, focused in
+                    if !focused && isRenaming {
+                        commitRename()
+                    }
+                }
+                .frame(maxWidth: .infinity)
+        }
+        .frame(width: Self.iconBoxSize)
+        .padding(.vertical, 10)
+        .padding(.horizontal, Self.horizontalInset)
+        .contentShape(.rect(cornerRadius: 12))
+        .background(ClickOutsideResigner(isActive: isRenaming))
     }
 
     @ViewBuilder
@@ -122,6 +160,10 @@ struct SiteGridCell: View {
         Button { editingBookmarkID = bookmark.id } label: {
             Label("Edit Icon", systemImage: "pencil")
         }
+        Button(action: beginRename) {
+            Label("Rename…", systemImage: "character.cursor.ibeam")
+        }
+        Divider()
         Button(action: openInSafari) {
             Label("Open in Safari", systemImage: "safari")
         }
@@ -134,6 +176,27 @@ struct SiteGridCell: View {
         } label: {
             Label("Reset This Site's Icon", systemImage: "arrow.counterclockwise")
         }
+    }
+
+    private func beginRename() {
+        renameDraft = bookmark.title
+        isRenaming = true
+        DispatchQueue.main.async {
+            renameFieldFocused = true
+        }
+    }
+
+    private func commitRename() {
+        guard isRenaming else { return }
+        let draft = renameDraft
+        isRenaming = false
+        renameFieldFocused = false
+        store.renameFavorite(bookmark, to: draft)
+    }
+
+    private func cancelRename() {
+        isRenaming = false
+        renameFieldFocused = false
     }
 
     private func openInSafari() {
@@ -185,11 +248,13 @@ private struct CellAccessibility: ViewModifier {
     let openInSafari: () -> Void
     let revealInFinder: () -> Void
     let resetIcon: () -> Void
+    let beginRename: () -> Void
 
     func body(content: Content) -> some View {
         content
             .accessibilityLabel(Text("\(bookmark.title), host \(bookmark.host)"))
             .accessibilityHint(Text("Double click to edit this site's icon"))
+            .accessibilityAction(named: Text("Rename"), beginRename)
             .accessibilityAction(named: Text("Open in Safari"), openInSafari)
             .accessibilityAction(named: Text("Show Icon File in Finder"), revealInFinder)
             .accessibilityAction(named: Text("Reset This Site's Icon"), resetIcon)

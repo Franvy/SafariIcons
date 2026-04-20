@@ -47,6 +47,8 @@ final class SiteStore {
     private var favoritesDebounceTask: Task<Void, Never>?
     private var iconRepairTask: Task<Void, Never>?
     private var diagnosticScopeBookmarks: [FavoriteBookmark] = []
+    private var dbWatcherNeedsRestart = false
+    private var bookmarksWatcherNeedsRestart = false
 
     func site(for bookmark: FavoriteBookmark) -> Site {
         let h = bookmark.host.lowercased()
@@ -75,7 +77,22 @@ final class SiteStore {
         self.store = store
     }
 
+    func renameFavorite(_ bookmark: FavoriteBookmark, to newTitle: String) {
+        let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed != bookmark.title else { return }
+        do {
+            try BookmarksWriter.renameFavorite(bookmark, newTitle: trimmed, paths: store.paths)
+            loadFavorites()
+        } catch {
+            reportTransient(error, context: "Rename favorite")
+        }
+    }
+
     func load() {
+        if dbWatcherNeedsRestart {
+            dbWatcherNeedsRestart = !restartDBWatcher()
+        }
+
         let fm = FileManager.default
         guard fm.fileExists(atPath: store.paths.db.path) else {
             state = .needsPermission
@@ -104,6 +121,10 @@ final class SiteStore {
     }
 
     func loadFavorites() {
+        if bookmarksWatcherNeedsRestart {
+            bookmarksWatcherNeedsRestart = !restartBookmarksWatcher()
+        }
+
         do {
             let result = try BookmarksReader.loadFavorites(paths: store.paths)
             favoriteBookmarks = result.bookmarks
@@ -138,44 +159,10 @@ final class SiteStore {
 
     func startWatching() {
         stopWatching()
-
-        let dbPath = store.paths.db.path
-        let fd = open(dbPath, O_EVTONLY)
-        if fd >= 0 {
-            dbWatchedFD = fd
-            let source = DispatchSource.makeFileSystemObjectSource(
-                fileDescriptor: fd,
-                eventMask: [.write, .extend, .rename, .delete],
-                queue: .main
-            )
-            source.setEventHandler { [weak self] in
-                self?.scheduleReload()
-            }
-            source.setCancelHandler { [fd] in
-                close(fd)
-            }
-            source.resume()
-            dbWatcher = source
-        }
-
-        let bookmarksPath = store.paths.safari.appendingPathComponent("Bookmarks.plist").path
-        let bfd = open(bookmarksPath, O_EVTONLY)
-        if bfd >= 0 {
-            bookmarksWatchedFD = bfd
-            let source = DispatchSource.makeFileSystemObjectSource(
-                fileDescriptor: bfd,
-                eventMask: [.write, .extend, .rename, .delete],
-                queue: .main
-            )
-            source.setEventHandler { [weak self] in
-                self?.scheduleFavoritesReload()
-            }
-            source.setCancelHandler { [bfd] in
-                close(bfd)
-            }
-            source.resume()
-            bookmarksWatcher = source
-        }
+        dbWatcherNeedsRestart = false
+        bookmarksWatcherNeedsRestart = false
+        _ = startDBWatcher()
+        _ = startBookmarksWatcher()
     }
 
     func stopWatching() {
@@ -191,6 +178,8 @@ final class SiteStore {
         bookmarksWatcher?.cancel()
         bookmarksWatcher = nil
         bookmarksWatchedFD = -1
+        dbWatcherNeedsRestart = false
+        bookmarksWatcherNeedsRestart = false
     }
 
     private func scheduleReload() {
@@ -209,6 +198,84 @@ final class SiteStore {
             guard !Task.isCancelled else { return }
             self?.loadFavorites()
         }
+    }
+
+    private func startDBWatcher() -> Bool {
+        let dbPath = store.paths.db.path
+        let fd = open(dbPath, O_EVTONLY)
+        guard fd >= 0 else {
+            return false
+        }
+
+        dbWatchedFD = fd
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fd,
+            eventMask: [.write, .extend, .rename, .delete],
+            queue: .main
+        )
+        source.setEventHandler { [weak self, weak source] in
+            let event = source?.data ?? []
+            self?.handleDBWatcherEvent(event)
+        }
+        source.setCancelHandler { [fd] in
+            close(fd)
+        }
+        source.resume()
+        dbWatcher = source
+        return true
+    }
+
+    private func startBookmarksWatcher() -> Bool {
+        let bookmarksPath = store.paths.safari.appendingPathComponent("Bookmarks.plist").path
+        let fd = open(bookmarksPath, O_EVTONLY)
+        guard fd >= 0 else {
+            return false
+        }
+
+        bookmarksWatchedFD = fd
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fd,
+            eventMask: [.write, .extend, .rename, .delete],
+            queue: .main
+        )
+        source.setEventHandler { [weak self, weak source] in
+            let event = source?.data ?? []
+            self?.handleBookmarksWatcherEvent(event)
+        }
+        source.setCancelHandler { [fd] in
+            close(fd)
+        }
+        source.resume()
+        bookmarksWatcher = source
+        return true
+    }
+
+    private func restartDBWatcher() -> Bool {
+        dbWatcher?.cancel()
+        dbWatcher = nil
+        dbWatchedFD = -1
+        return startDBWatcher()
+    }
+
+    private func restartBookmarksWatcher() -> Bool {
+        bookmarksWatcher?.cancel()
+        bookmarksWatcher = nil
+        bookmarksWatchedFD = -1
+        return startBookmarksWatcher()
+    }
+
+    private func handleDBWatcherEvent(_ event: DispatchSource.FileSystemEvent) {
+        if !event.intersection([.rename, .delete]).isEmpty {
+            dbWatcherNeedsRestart = true
+        }
+        scheduleReload()
+    }
+
+    private func handleBookmarksWatcherEvent(_ event: DispatchSource.FileSystemEvent) {
+        if !event.intersection([.rename, .delete]).isEmpty {
+            bookmarksWatcherNeedsRestart = true
+        }
+        scheduleFavoritesReload()
     }
 
     private func scheduleFavoriteIconRepair(for bookmarks: [FavoriteBookmark]) {
@@ -277,13 +344,12 @@ final class SiteStore {
 
     func resetIcon(for bookmark: FavoriteBookmark) {
         let site = site(for: bookmark)
-        let iconPath = store.paths.iconURL(forMD5: site.md5)
-        try? store.lockImages(false)
-        defer { try? store.lockImages(true) }
-        if FileManager.default.fileExists(atPath: iconPath.path) {
-            try? FileManager.default.removeItem(at: iconPath)
+        do {
+            try store.removeStoredIcon(for: site)
+            iconVersion = UUID()
+        } catch {
+            reportTransient(error, context: "Reset icon")
         }
-        iconVersion = UUID()
     }
 
     func setImagesLocked(_ locked: Bool) {
