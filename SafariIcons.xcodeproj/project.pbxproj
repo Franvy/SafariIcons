@@ -1,0 +1,434 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 63;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CA0000000000000000000001 /* SafariIconsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0000000000000000000001 /* SafariIconsApp.swift */; };
+		CA0000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0000000000000000000002 /* ContentView.swift */; };
+		CA0000000000000000000004 /* SiteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0000000000000000000004 /* SiteDetailView.swift */; };
+		CA0000000000000000000005 /* Site.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0000000000000000000005 /* Site.swift */; };
+		CA0000000000000000000006 /* SiteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0000000000000000000006 /* SiteStore.swift */; };
+		CA0000000000000000000007 /* SafariPaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0000000000000000000007 /* SafariPaths.swift */; };
+		CA0000000000000000000008 /* IconStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0000000000000000000008 /* IconStore.swift */; };
+		CA0000000000000000000009 /* SafariProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0000000000000000000009 /* SafariProcess.swift */; };
+		CA000000000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BA000000000000000000000A /* Assets.xcassets */; };
+		CA000000000000000000000B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BA000000000000000000000B /* Preview Assets.xcassets */; };
+		CA000000000000000000000C /* BookmarksReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA000000000000000000000D /* BookmarksReader.swift */; };
+		CA000000000000000000000D /* SiteGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA000000000000000000000E /* SiteGridView.swift */; };
+		CA000000000000000000000E /* SiteGridCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA000000000000000000000F /* SiteGridCell.swift */; };
+		CA000000000000000000000F /* IconBoxGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0000000000000000000010 /* IconBoxGeometry.swift */; };
+		CA0000000000000000000010 /* StandardIconBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0000000000000000000011 /* StandardIconBox.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AB0000000000000000000002 /* SafariIcons.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SafariIcons.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BA0000000000000000000001 /* SafariIconsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariIconsApp.swift; sourceTree = "<group>"; };
+		BA0000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		BA0000000000000000000004 /* SiteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteDetailView.swift; sourceTree = "<group>"; };
+		BA0000000000000000000005 /* Site.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Site.swift; sourceTree = "<group>"; };
+		BA0000000000000000000006 /* SiteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteStore.swift; sourceTree = "<group>"; };
+		BA0000000000000000000007 /* SafariPaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariPaths.swift; sourceTree = "<group>"; };
+		BA0000000000000000000008 /* IconStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconStore.swift; sourceTree = "<group>"; };
+		BA0000000000000000000009 /* SafariProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariProcess.swift; sourceTree = "<group>"; };
+		BA000000000000000000000A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BA000000000000000000000B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		BA000000000000000000000C /* SafariIcons.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SafariIcons.entitlements; sourceTree = "<group>"; };
+		BA000000000000000000000D /* BookmarksReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksReader.swift; sourceTree = "<group>"; };
+		BA000000000000000000000E /* SiteGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteGridView.swift; sourceTree = "<group>"; };
+		BA000000000000000000000F /* SiteGridCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteGridCell.swift; sourceTree = "<group>"; };
+		BA0000000000000000000010 /* IconBoxGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconBoxGeometry.swift; sourceTree = "<group>"; };
+		BA0000000000000000000011 /* StandardIconBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandardIconBox.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AC0000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA0000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000003 /* SafariIcons */,
+				AA0000000000000000000008 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000003 /* SafariIcons */ = {
+			isa = PBXGroup;
+			children = (
+				BA0000000000000000000001 /* SafariIconsApp.swift */,
+				BA0000000000000000000002 /* ContentView.swift */,
+				AA0000000000000000000004 /* Views */,
+				AA0000000000000000000005 /* Model */,
+				AA0000000000000000000006 /* Services */,
+				BA000000000000000000000C /* SafariIcons.entitlements */,
+				AA0000000000000000000007 /* Preview Content */,
+			);
+			path = SafariIcons;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000004 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				BA000000000000000000000E /* SiteGridView.swift */,
+				BA000000000000000000000F /* SiteGridCell.swift */,
+				BA0000000000000000000004 /* SiteDetailView.swift */,
+				BA0000000000000000000011 /* StandardIconBox.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000005 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				BA0000000000000000000005 /* Site.swift */,
+				BA0000000000000000000006 /* SiteStore.swift */,
+				BA0000000000000000000010 /* IconBoxGeometry.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000006 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				BA0000000000000000000007 /* SafariPaths.swift */,
+				BA0000000000000000000009 /* SafariProcess.swift */,
+				BA000000000000000000000D /* BookmarksReader.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000007 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				BA000000000000000000000A /* Assets.xcassets */,
+				BA0000000000000000000008 /* IconStore.swift */,
+				BA000000000000000000000B /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000008 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AB0000000000000000000002 /* SafariIcons.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AB0000000000000000000001 /* SafariIcons */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AD0000000000000000000002 /* Build configuration list for PBXNativeTarget "SafariIcons" */;
+			buildPhases = (
+				AC0000000000000000000001 /* Sources */,
+				AC0000000000000000000002 /* Frameworks */,
+				AC0000000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SafariIcons;
+			packageProductDependencies = (
+			);
+			productName = SafariIcons;
+			productReference = AB0000000000000000000002 /* SafariIcons.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA0000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 2640;
+				TargetAttributes = {
+					AB0000000000000000000001 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+				};
+			};
+			buildConfigurationList = AD0000000000000000000001 /* Build configuration list for PBXProject "SafariIcons" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				"zh-Hans",
+				en,
+				Base,
+			);
+			mainGroup = AA0000000000000000000002;
+			minimizedProjectReferenceProxies = 1;
+			productRefGroup = AA0000000000000000000008 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AB0000000000000000000001 /* SafariIcons */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AC0000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA000000000000000000000B /* Preview Assets.xcassets in Resources */,
+				CA000000000000000000000A /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AC0000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA0000000000000000000001 /* SafariIconsApp.swift in Sources */,
+				CA0000000000000000000002 /* ContentView.swift in Sources */,
+				CA000000000000000000000D /* SiteGridView.swift in Sources */,
+				CA000000000000000000000E /* SiteGridCell.swift in Sources */,
+				CA0000000000000000000004 /* SiteDetailView.swift in Sources */,
+				CA0000000000000000000005 /* Site.swift in Sources */,
+				CA0000000000000000000006 /* SiteStore.swift in Sources */,
+				CA000000000000000000000F /* IconBoxGeometry.swift in Sources */,
+				CA0000000000000000000007 /* SafariPaths.swift in Sources */,
+				CA0000000000000000000008 /* IconStore.swift in Sources */,
+				CA0000000000000000000009 /* SafariProcess.swift in Sources */,
+				CA000000000000000000000C /* BookmarksReader.swift in Sources */,
+				CA0000000000000000000010 /* StandardIconBox.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AE0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AE0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		AE0000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = SafariIcons/SafariIcons.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"SafariIcons/Preview Content\"";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SafariIcons;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.safariicons.SafariIcons;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		AE0000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = SafariIcons/SafariIcons.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"SafariIcons/Preview Content\"";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SafariIcons;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.safariicons.SafariIcons;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AD0000000000000000000001 /* Build configuration list for PBXProject "SafariIcons" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE0000000000000000000001 /* Debug */,
+				AE0000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AD0000000000000000000002 /* Build configuration list for PBXNativeTarget "SafariIcons" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE0000000000000000000003 /* Debug */,
+				AE0000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA0000000000000000000001 /* Project object */;
+}

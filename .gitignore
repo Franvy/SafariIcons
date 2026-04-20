@@ -1,0 +1,59 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode — user-specific files
+**/xcuserdata/
+**/*.xcuserstate
+**/xcshareddata/WorkspaceSettings.xcsettings
+*.xcscmblueprint
+*.xccheckout
+
+# Xcode — build artifacts
+build/
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+Packages/
+Package.resolved
+.build/
+
+# CocoaPods / Carthage (not used, but safe to ignore)
+Pods/
+Carthage/Build/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Release artifacts
+*.dmg
+*.pkg
+*.zip
+release/
+dist/
+exportOptions.plist
+ExportOptions.plist
+
+# AI / editor tool folders (local-only)
+.claude/
+.agents/
+.junie/
+.kiro/
+skills-lock.json
+
+# Editor state
+.idea/
+.vscode/
+*.swp
+*.swo
