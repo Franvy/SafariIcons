@@ -1,11 +1,17 @@
+import Sparkle
 import SwiftUI
 
 @main
-struct SafariIconsApp: App {
+struct TabnookApp: App {
     @State private var store = SiteStore()
+    private let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
 
     var body: some Scene {
-        Window("SafariIcons", id: "main") {
+        Window("Tabnook", id: "main") {
             ContentView()
                 .environment(store)
                 .onAppear {
@@ -18,6 +24,10 @@ struct SafariIconsApp: App {
         .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) { }
+
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesMenuItem(updater: updaterController.updater)
+            }
 
             CommandMenu("Icons") {
                 Button("Restart Safari to Apply Changes") {
@@ -47,7 +57,19 @@ struct SafariIconsApp: App {
                     store.setImagesLocked(false)
                 }
                 .keyboardShortcut("u", modifiers: [.command, .shift])
+
+                Divider()
+
+                Button("Reveal Backup Folder in Finder") {
+                    store.revealBackupFolder()
+                }
+                .keyboardShortcut("b", modifiers: [.command, .shift])
             }
+        }
+
+        Settings {
+            BackupSettingsView()
+                .environment(store)
         }
     }
 }

@@ -16,6 +16,11 @@ struct TransientError: Identifiable {
     let message: String
 }
 
+struct TransientInfo: Identifiable {
+    let id = UUID()
+    let message: String
+}
+
 struct DiagnosticReport: Identifiable {
     let id = UUID()
     let title: String
@@ -32,13 +37,16 @@ final class SiteStore {
     private(set) var bookmarksDiagnostics: BookmarksResult?
     private(set) var iconVersion: UUID = UUID()
     var transientError: TransientError?
+    var transientInfo: TransientInfo?
     var diagnosticReport: DiagnosticReport?
 
     private var siteByHost: [String: Site] = [:]
 
-    private static let log = Logger(subsystem: "com.safariicons.SafariIcons", category: "SiteStore")
+    private static let log = Logger(subsystem: "com.franvy.Tabnook", category: "SiteStore")
 
     private let store: IconStore
+    let backup: BackupStore
+    private var reconcileTask: Task<Void, Never>?
     private var dbWatcher: DispatchSourceFileSystemObject?
     private var dbWatchedFD: Int32 = -1
     private var bookmarksWatcher: DispatchSourceFileSystemObject?
@@ -73,8 +81,9 @@ final class SiteStore {
         siteByHost = index
     }
 
-    init(store: IconStore = IconStore()) {
+    init(store: IconStore = IconStore(), backup: BackupStore = BackupStore()) {
         self.store = store
+        self.backup = backup
     }
 
     func renameFavorite(_ bookmark: FavoriteBookmark, to newTitle: String) {
@@ -115,8 +124,40 @@ final class SiteStore {
                 Self.log.debug("site host=\(site.host, privacy: .public) rawStyle=\(rawStyleValue, privacy: .public) resolvedStyle=\(site.style.rawValue, privacy: .public)")
             }
             state = .loaded
+            scheduleReconcile()
         } catch {
             state = .failed(userMessage(from: error))
+        }
+    }
+
+    private func scheduleReconcile() {
+        reconcileTask?.cancel()
+        let backup = backup
+        let iconStore = store
+        reconcileTask = Task { [weak self] in
+            let report: ReconcileReport
+            do {
+                report = try await backup.reconcile(iconStore: iconStore)
+            } catch {
+                Self.log.error("reconcile failed: \(error.localizedDescription, privacy: .public)")
+                return
+            }
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                guard let self else { return }
+                if report.schemaTooNew {
+                    self.transientError = TransientError(
+                        message: "Backup was written by a newer Tabnook; restore paused to prevent data loss."
+                    )
+                    return
+                }
+                if !report.restoredHosts.isEmpty {
+                    self.iconVersion = UUID()
+                    self.transientInfo = TransientInfo(
+                        message: "Restored \(report.restoredHosts.count) custom icon\(report.restoredHosts.count == 1 ? "" : "s") from backup"
+                    )
+                }
+            }
         }
     }
 
@@ -143,7 +184,7 @@ final class SiteStore {
     func requestAccess() {
         let panel = NSOpenPanel()
         panel.title = "Authorize Access to Safari Data"
-        panel.message = "SafariIcons needs to read Bookmarks.plist (your favorites) and Touch Icons Cache (icons) inside ~/Library/Safari/. Select the Safari folder below and click Authorize."
+        panel.message = "Tabnook needs to read Bookmarks.plist (your favorites) and Touch Icons Cache (icons) inside ~/Library/Safari/. Select the Safari folder below and click Authorize."
         panel.prompt = "Authorize"
         panel.directoryURL = store.paths.safari
         panel.canChooseDirectories = true
@@ -172,6 +213,8 @@ final class SiteStore {
         favoritesDebounceTask = nil
         iconRepairTask?.cancel()
         iconRepairTask = nil
+        reconcileTask?.cancel()
+        reconcileTask = nil
         dbWatcher?.cancel()
         dbWatcher = nil
         dbWatchedFD = -1
@@ -315,8 +358,9 @@ final class SiteStore {
 
     func acceptDrop(url: URL, for site: Site) {
         do {
-            try store.writeIcon(from: url, for: site)
+            let pngData = try store.writeIcon(from: url, for: site)
             iconVersion = UUID()
+            recordBackup(host: site.host, md5: site.md5, pngData: pngData, sourceKind: .file)
         } catch {
             reportTransient(error, context: "Write icon")
         }
@@ -324,8 +368,9 @@ final class SiteStore {
 
     func acceptDrop(data: Data, for site: Site) {
         do {
-            try store.writeIcon(data: data, for: site)
+            let pngData = try store.writeIcon(data: data, for: site)
             iconVersion = UUID()
+            recordBackup(host: site.host, md5: site.md5, pngData: pngData, sourceKind: .dropData)
         } catch {
             reportTransient(error, context: "Write icon")
         }
@@ -337,6 +382,10 @@ final class SiteStore {
             sites = []
             siteByHost = [:]
             iconVersion = UUID()
+            let backup = backup
+            Task {
+                try? await backup.forgetAll()
+            }
         } catch {
             reportTransient(error, context: "Reset default icons")
         }
@@ -347,9 +396,78 @@ final class SiteStore {
         do {
             try store.removeStoredIcon(for: site)
             iconVersion = UUID()
+            let backup = backup
+            let host = site.host
+            Task {
+                try? await backup.forget(host: host)
+            }
         } catch {
             reportTransient(error, context: "Reset icon")
         }
+    }
+
+    private func recordBackup(host: String, md5: String, pngData: Data, sourceKind: BackupSourceKind) {
+        let backup = backup
+        Task { [weak self] in
+            do {
+                _ = try await backup.recordBackup(host: host, pngData: pngData, md5: md5, sourceKind: sourceKind)
+            } catch {
+                await MainActor.run {
+                    self?.transientError = TransientError(
+                        message: "Backup write failed: \(error.localizedDescription). Your icon is applied but unprotected."
+                    )
+                }
+            }
+        }
+    }
+
+    func revealBackupFolder() {
+        let backup = backup
+        Task {
+            await backup.revealInFinder()
+        }
+    }
+
+    func setBackupRoot(_ url: URL, migrateExisting: Bool) {
+        let backup = backup
+        Task { [weak self] in
+            do {
+                try await backup.setRootURL(url, migrateExisting: migrateExisting)
+                await MainActor.run {
+                    self?.transientInfo = TransientInfo(message: "Backup folder changed")
+                    self?.scheduleReconcile()
+                }
+            } catch {
+                await MainActor.run {
+                    self?.transientError = TransientError(
+                        message: "Set backup folder failed: \(error.localizedDescription)"
+                    )
+                }
+            }
+        }
+    }
+
+    func resetBackupRootToDefault() {
+        let backup = backup
+        Task { [weak self] in
+            do {
+                try await backup.resetToDefaultRoot()
+                await MainActor.run {
+                    self?.transientInfo = TransientInfo(message: "Reverted to default backup folder")
+                    self?.scheduleReconcile()
+                }
+            } catch {
+                await MainActor.run {
+                    self?.transientError = TransientError(
+                        message: "Reset backup folder failed: \(error.localizedDescription)"
+                    )
+                }
+            }
+        }
+    }
+
+    func currentBackupRootURL() async -> URL {
+        await backup.currentRootURL
     }
 
     func setImagesLocked(_ locked: Bool) {

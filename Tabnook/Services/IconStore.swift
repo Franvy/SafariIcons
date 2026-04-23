@@ -355,7 +355,8 @@ struct IconStore: Sendable {
         }
     }
 
-    func writeIcon(from source: URL, for site: Site) throws {
+    @discardableResult
+    func writeIcon(from source: URL, for site: Site) throws -> Data {
         try withUnlockedImages {
             let destination = paths.iconURL(forMD5: site.md5)
             let normalizedData = try IconImageProcessor.normalizedPNGData(from: source)
@@ -365,10 +366,12 @@ struct IconStore: Sendable {
             }
             try normalizedData.write(to: destination, options: .atomic)
             try? setIconCached(host: site.host)
+            return normalizedData
         }
     }
 
-    func writeIcon(data: Data, for site: Site) throws {
+    @discardableResult
+    func writeIcon(data: Data, for site: Site) throws -> Data {
         try withUnlockedImages {
             let destination = paths.iconURL(forMD5: site.md5)
             let normalizedData = try IconImageProcessor.normalizedPNGData(from: data)
@@ -378,6 +381,17 @@ struct IconStore: Sendable {
             }
             try normalizedData.write(to: destination, options: .atomic)
             try? setIconCached(host: site.host)
+            return normalizedData
+        }
+    }
+
+    func restoreIconFile(from backup: URL, to target: URL) throws {
+        try withUnlockedImages {
+            let fm = FileManager.default
+            if fm.fileExists(atPath: target.path) {
+                try fm.removeItem(at: target)
+            }
+            try fm.copyItem(at: backup, to: target)
         }
     }
 

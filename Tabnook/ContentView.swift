@@ -24,7 +24,21 @@ struct ContentView: View {
             }
             .ignoresSafeArea(.container, edges: .top)
         }
-        .navigationTitle("SafariIcons")
+        .overlay(alignment: .top) {
+            if let info = store.transientInfo {
+                ToastView(message: info.message)
+                    .padding(.top, 20)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .task(id: info.id) {
+                        try? await Task.sleep(for: .seconds(3))
+                        if store.transientInfo?.id == info.id {
+                            store.transientInfo = nil
+                        }
+                    }
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: store.transientInfo?.id)
+        .navigationTitle("Tabnook")
         .frame(minWidth: 720, minHeight: 520)
         .task(id: diagnosticScopeKey) {
             store.updateDiagnosticScope(bookmarks: store.favoriteBookmarks)
@@ -137,7 +151,7 @@ struct ContentView: View {
                 .symbolRenderingMode(.hierarchical)
         } description: {
             VStack(alignment: .leading, spacing: 8) {
-                Text("SafariIcons needs to read the following to manage your favorite icons:")
+                Text("Tabnook needs to read the following to manage your favorite icons:")
                 Label("Safari favorites list", systemImage: "bookmark")
                 Label("Touch Icons cache", systemImage: "photo.on.rectangle")
                 Label("Write and lock icon files", systemImage: "lock")
@@ -164,6 +178,31 @@ struct ContentView: View {
             Button("Re-authorize ~/Library/Safari/") { store.requestAccess() }
                 .buttonStyle(.borderedProminent)
         }
+    }
+}
+
+private struct ToastView: View {
+    let message: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+            Text(message)
+                .font(.callout)
+                .foregroundStyle(.primary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(
+            Capsule()
+                .fill(.regularMaterial)
+        )
+        .overlay(
+            Capsule()
+                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.10), radius: 10, y: 3)
     }
 }
 

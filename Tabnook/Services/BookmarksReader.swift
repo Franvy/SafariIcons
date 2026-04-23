@@ -182,7 +182,7 @@ enum BookmarksWriter {
 }
 
 struct BookmarksReader {
-    private static let log = Logger(subsystem: "com.safariicons.SafariIcons", category: "BookmarksReader")
+    private static let log = Logger(subsystem: "com.franvy.Tabnook", category: "BookmarksReader")
 
     static func loadFavorites(paths: SafariPaths = .default) throws -> BookmarksResult {
         let url = paths.safari.appendingPathComponent("Bookmarks.plist")
