@@ -5,5 +5,28 @@
         <link>https://raw.githubusercontent.com/Franvy/Tabnook/main/appcast.xml</link>
         <description>Tabnook release feed</description>
         <language>en</language>
+        <item>
+            <title>1.2.0</title>
+            <pubDate>Thu, 23 Apr 2026 15:50:29 +0000</pubDate>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h3>What's new</h3>
+                <ul>
+                    <li><strong>Renamed to Tabnook</strong> (formerly SafariIcons). New bundle id <code>com.franvy.Tabnook</code> and repo at github.com/Franvy/Tabnook.</li>
+                    <li><strong>Sparkle auto-update</strong>: "Check for Updates…" menu item and automatic background checks. All updates are EdDSA-signed.</li>
+                    <li><strong>Icon backup &amp; auto-restore</strong>: custom icons are mirrored to a backup folder and automatically restored if Safari purges its Touch Icons cache.</li>
+                    <li><strong>Settings → Backup Folder</strong>: point the backup at iCloud Drive or Dropbox to sync custom icons across Macs.</li>
+                    <li><strong>Toast feedback</strong> for reconcile and settings changes.</li>
+                </ul>
+                <p>Upgrading from v1.1.0 (SafariIcons)? Because the bundle id changed, macOS treats this as a new app — delete the old <code>SafariIcons.app</code> first, then install Tabnook. Future updates (v1.2.0 → newer) install automatically.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/Franvy/Tabnook/releases/download/v1.2.0/Tabnook-1.2.0.dmg"
+                sparkle:edSignature="Sk6+nwYF72N29N12kpjjbq/C+kWJ0jC6InYER5Ne8FCBvMqx4/PMHaqdGX15gN0ZZM+go175PktZusOZ77pJBA=="
+                length="4523758"
+                type="application/octet-stream" />
+        </item>
     </channel>
 </rss>
